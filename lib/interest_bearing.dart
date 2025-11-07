@@ -1,7 +1,7 @@
 abstract class InterestBearing {
-  /// Calculate interest amount based on current balance.
-  double calculateInterest();
+  /// Annual interest rate expressed as a decimal (e.g. 0.02 for 2%)
+  double get annualInterestRate;
 
-  /// Apply the calculated interest to the account (concrete classes can override)
-  void applyInterest();
+  /// Apply monthly interest to the account implementing this interface.
+  void applyMonthlyInterest();
 }

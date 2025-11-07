@@ -2,49 +2,54 @@ import 'bank_account.dart';
 import 'interest_bearing.dart';
 
 class PremiumAccount extends BankAccount implements InterestBearing {
-  static const double _minBalance = 10000.0;
-  static const double _interestRate = 0.05; // 5%
+  static const double minBalance = 10000.0;
+  static const double _defaultAnnualRate = 0.05; // 5%
+
+  final double _annualRate;
 
   PremiumAccount(
     String accountNumber,
-    String accountHolderName,
-    double initialBalance,
-  ) : super(accountNumber, accountHolderName, initialBalance) {
-    if (initialBalance < _minBalance) {
+    String holderName,
+    double balance, {
+    double annualRate = _defaultAnnualRate,
+  }) : _annualRate = annualRate,
+       super(accountNumber, holderName, balance) {
+    if (balance < minBalance) {
       throw ArgumentError(
-        'Initial balance for PremiumAccount must be at least \$$_minBalance',
+        'Premium accounts require an initial balance of at least \$${minBalance.toStringAsFixed(2)}',
       );
     }
   }
 
   @override
+  double get annualInterestRate => _annualRate;
+
+  @override
   void deposit(double amount) {
-    if (amount <= 0) throw ArgumentError('Deposit amount must be positive');
+    if (amount <= 0) throw ArgumentError('Deposit amount must be > 0');
     balance = balance + amount;
-    recordTransaction('deposit', amount, 'Deposit to premium');
+    recordTransaction('Deposit', amount, 'Deposit to premium account');
   }
 
   @override
   void withdraw(double amount) {
-    if (amount <= 0) throw ArgumentError('Withdrawal amount must be positive');
-    if (balance - amount < _minBalance) {
+    if (amount <= 0) throw ArgumentError('Withdraw amount must be > 0');
+    final newBalance = balance - amount;
+    if (newBalance < minBalance) {
       throw StateError(
-        'Cannot withdraw: PremiumAccount must maintain minimum balance of \$$_minBalance',
+        'Premium account must maintain a minimum balance of \$${minBalance.toStringAsFixed(2)}',
       );
     }
-    balance = balance - amount;
-    recordTransaction('withdraw', amount, 'Withdrawal from premium');
+    balance = newBalance;
+    recordTransaction('Withdraw', amount, 'Withdrawal from premium account');
   }
 
   @override
-  double calculateInterest() {
-    return balance * _interestRate;
-  }
-
-  @override
-  void applyInterest() {
-    final double interest = calculateInterest();
+  void applyMonthlyInterest() {
+    final monthlyRate = _annualRate / 12;
+    final interest = balance * monthlyRate;
+    if (interest <= 0) return;
     balance = balance + interest;
-    recordTransaction('interest', interest, 'Monthly interest applied');
+    recordTransaction('Interest', interest, 'Monthly interest applied');
   }
 }
